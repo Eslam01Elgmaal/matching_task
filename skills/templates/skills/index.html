@@ -1,0 +1,130 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <title>Skills Match — Demo</title>
+ 
+</head>
+<body>
+
+  <!-- HERO -->
+  <header class="hero" role="banner" aria-label="Hero">
+    <div class="hero-inner container">
+      <div class="hero-left">
+        <h1>Match your skills<br>with the job</h1>
+        <p class="lead">Input your skills and see how well they match with specific job requirements. Get a score and personalized feedback.</p>
+      </div>
+
+      <div class="hero-art" aria-hidden="true">
+        <!-- replace sasa.jbg with the real image file (keeps placeholder name as requested) -->
+
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="container" role="main">
+    <h2 class="title-center">Enter your skills to get started</h2>
+
+    <form class="card" id="skillsForm" onsubmit="return false;">
+      <div class="field">
+        <label for="track">Track</label>
+        <select id="track" name="track" aria-label="Select track">
+                {% for value, label in track_options %}
+
+                    <option value="{{ value }}">{{ label }}</option>
+
+                {% endfor %}
+
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="skills">Skills</label>
+
+
+        <textarea id="description" name="description" placeholder="Enter your skills..."></textarea>
+
+
+      </div>
+
+
+      <div class="field" style="margin-top:6px;">
+    <button type="submit">Check Skills</button>
+      </div>
+    </form>
+
+    <div class="result" id="resultBox" style="display:none;">
+      <h3>Results</h3>
+        <div id="matchedSkills"></div>
+        <div id="missingSkills"></div>
+        <p><strong>Your skills match <span id="matchPercent">0%</span> with the selected track.</strong></p>
+        <p id="adviceText"><strong>Advice will appear here</strong></p>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <p>+0201065869833</p>
+        <a href="https://mail.google.com/mail/u/0/#inbox" type="email">eslam.ibrahim.dev@gmail.com</a>
+      </div>
+
+    </div>
+  </footer>
+
+
+
+
+  <script>
+    const form = document.getElementById('skillsForm');
+    const resultBox = document.getElementById('resultBox');
+    const matchedDiv = document.getElementById('matchedSkills');
+    const missingDiv = document.getElementById('missingSkills');
+    const scoreEl = document.getElementById('matchPercent');
+    const adviceEl = document.getElementById('adviceText');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const track = document.getElementById('track').value;
+        const description = document.getElementById('description').value;
+
+        const response = await fetch('/match-skills-ai/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({track, description})
+        });
+
+        const data = await response.json();
+
+     
+        let matchedHtml = '<h4>Matched Skills:</h4><ul>';
+        data.matched_skills.forEach(skill => matchedHtml += `<li>${skill}</li>`);
+        matchedHtml += '</ul>';
+
+        let missingHtml = '<h4>Missing Skills:</h4><ul>';
+        data.missing_skills.forEach(skill => missingHtml += `<li>${skill}</li>`);
+        missingHtml += '</ul>';
+
+        matchedDiv.innerHTML = matchedHtml;
+        missingDiv.innerHTML = missingHtml;
+
+        scoreEl.textContent = data.score + '%';
+        adviceEl.textContent = data.advice;
+        resultBox.style.display = 'block';
+
+        resultBox.scrollIntoView({behavior: 'smooth', block: 'center'});
+    });
+
+  </script>
+
+  
+</body>
+</html>
