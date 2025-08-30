@@ -18,10 +18,10 @@ def match_skills(request):
         if not track or not description:
             return JsonResponse({"error": "Please provide both track and description."}, status=400)
 
-        # Save user input
+    
         user_input = UserInput.objects.create(track=track, description=description)
 
-        # Get all skills for this track
+
         skills = Skill.objects.filter(track=track)
         matched_skills = []
         missing_skills = []

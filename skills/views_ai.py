@@ -6,6 +6,7 @@ from django.conf import settings
 
 
 from langchain.chat_models import init_chat_model
+from .models import Skill
 
 
 llm = init_chat_model(
@@ -24,16 +25,15 @@ def match_skills_ai(request):
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-        skills_db = {
-            "FE": ["HTML", "CSS", "JavaScript", "React", "Git"],
-            "BE": ["Python", "Django", "REST API", "PostgreSQL", "Git"],
-        }
-
-        matched_skills = [s for s in skills_db.get(track, []) if s.lower() in description.lower()]
-        missing_skills = [s for s in skills_db.get(track, []) if s.lower() not in description.lower()]
+        skills_db = list(Skill.objects.filter(track=track).values_list('name', flat=True))
 
 
-        score = round(len(matched_skills) / len(skills_db.get(track, [])) * 100) if skills_db.get(track) else 0
+        matched_skills = [s for s in skills_db if s.lower() in description.lower()]
+        missing_skills = [s for s in skills_db if s.lower() not in description.lower()]
+
+
+        score = round(len(matched_skills) / len(skills_db) * 100) if skills_db else 0
+
 
 
         prompt = f"""
